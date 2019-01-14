@@ -1,0 +1,24 @@
+{
+  "name": "cytoscape-compound-drag-and-drop",
+  "description": "Drag-and-drop UI for creating and editing the children of compound parent nodes",
+  "main": "cytoscape-compound-drag-and-drop.js",
+  "dependencies": {
+    "cytoscape": "^3.3.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cytoscape/cytoscape.js-compound-drag-and-drop.git"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "keywords": [
+    "cytoscape",
+    "cytoscape-extension"
+  ],
+  "license": "MIT"
+}
