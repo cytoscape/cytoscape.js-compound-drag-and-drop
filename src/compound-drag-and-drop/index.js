@@ -3,5 +3,7 @@ module.exports = function(){
 
   // your extension impl...
 
+  console.log('TODO');
+
   return this; // chainability
 };

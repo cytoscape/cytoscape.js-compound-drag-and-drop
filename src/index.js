@@ -1,4 +1,4 @@
-const impl = require('./core');
+const impl = require('./compound-drag-and-drop');
 
 // registers the extension on a cytoscape lib ref
 let register = function( cytoscape ){
