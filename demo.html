@@ -26,13 +26,21 @@
 				top: 0;
 				bottom: 0;
 				right: 0;
-				z-index: 999;
+				z-index: 1;
 			}
 
 			h1 {
 				opacity: 0.5;
 				font-size: 1em;
 				font-weight: bold;
+			}
+
+			#split {
+				position: absolute;
+				right: 0;
+				top: 0;
+				margin: 1em;
+				z-index: 2;
 			}
 		</style>
 
@@ -46,7 +54,15 @@
 						{
 							selector: 'node',
 							style: {
+								'z-index': 1,
+								'label': 'data(id)'
+							}
+						},
 
+						{
+							selector: 'node:parent',
+							style: {
+								'label': ''
 							}
 						},
 
@@ -55,6 +71,41 @@
 							style: {
 								'curve-style': 'bezier',
 								'target-arrow-shape': 'triangle'
+							}
+						},
+
+						{
+							selector: '.cdnd-parent',
+							style: {
+								'border-color': 'red'
+							}
+						},
+
+						{
+							selector: '.cdnd-sibling',
+							style: {
+								'background-color': 'red'
+							}
+						},
+
+						{
+							selector: '.cdnd-preview',
+							style: {
+								'label': '',
+								'shape': 'rectangle',
+								'padding': 10,
+								'background-color': '#eee',
+								'border-color': 'red',
+								'border-width': 1,
+								'z-index': 0
+							}
+						},
+
+						{
+							selector: '.cdnd-hidden-parent',
+							style: {
+								'background-opacity': 0,
+								'border-opacity': 0
 							}
 						}
 					],
@@ -73,7 +124,11 @@
 					}
 				});
 
-				cy.compoundDragAndDrop();
+				var cdnd = cy.compoundDragAndDrop();
+
+				document.getElementById('split').addEventListener('click', function(){
+					cdnd.split( cy.$('node:selected') );
+				});
 
 			});
 		</script>
@@ -83,6 +138,8 @@
 		<h1>cytoscape-compound-drag-and-drop demo</h1>
 
 		<div id="cy"></div>
+
+		<button id="split">Split selected nodes</button>
 
 	</body>
 
