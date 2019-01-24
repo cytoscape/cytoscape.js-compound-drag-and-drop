@@ -29,8 +29,19 @@ const boundsOverlap = (bb1, bb2) => {
   return true;
 };
 
+const expandBounds = (bb, padding) => {
+  return {
+    x1: bb.x1 - padding,
+    x2: bb.x2 + padding,
+    w: bb.w + 2 * padding,
+    y1: bb.y1 - padding,
+    y2: bb.y2 + padding,
+    h: bb.h + 2 * padding
+  };
+};
+
 module.exports = {
   isParent, isChild,
-  getBoundsTuple, boundsOverlap, getBounds,
+  getBoundsTuple, boundsOverlap, getBounds, expandBounds,
   removeParent, setParent, freshRef
  };

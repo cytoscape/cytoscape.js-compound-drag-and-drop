@@ -1,4 +1,8 @@
-const { isParent, isChild, getBounds, getBoundsTuple, boundsOverlap, setParent, freshRef } = require('./util');
+const {
+  isParent, isChild,
+  getBounds, getBoundsTuple, boundsOverlap, expandBounds,
+  setParent, freshRef
+} = require('./util');
 
 const addListener = function(event, selector, callback){
   this.listeners.push({ event, selector, callback });
@@ -16,11 +20,16 @@ const addListeners = function(){
   this.addListener('grab', 'node', e => {
     const node = e.target;
 
-    if( !this.enabled || isParent(node) || isChild(node) || (node.selected() && cy.elements('node:selected').length > 1) ){ return; }
+    if(
+      !this.enabled
+      || isParent(node) || isChild(node)
+      || (node.selected() && cy.elements('node:selected').length > 1) // dragging multiple nodes not allowed
+      || !options.grabbedNode(node)
+    ){ return; }
 
     this.inGesture = true;
     this.grabbedNode = node;
-    this.boundsTuples = cy.nodes().not(node).map(getBoundsTuple);
+    this.boundsTuples = cy.nodes(options.dropTarget).not(node).map(getBoundsTuple);
     this.dropTarget = cy.collection();
   });
 
@@ -28,7 +37,7 @@ const addListeners = function(){
     if( !this.inGesture || !this.enabled ){ return; }
 
     cy.startBatch();
-    const bb = getBounds(this.grabbedNode);
+    const bb = expandBounds( getBounds(this.grabbedNode), options.threshold );
     const overlappingNodes = this.boundsTuples.filter(t => boundsOverlap(bb, t.bb)).map(t => t.node);
 
     this.dropTarget.removeClass('cdnd-drop-target');
@@ -76,7 +85,7 @@ const addListeners = function(){
 
         this.grabbedNode.emit('cdnddrop', [this.dropTarget, this.dropTarget]);
       } else {
-        const parent = cy.add({ group: 'nodes' }); // TODO parameterise
+        const parent = cy.add( options.newParentNode(this.grabbedNode, this.dropTarget) );
 
         setParent(this.dropTarget, parent);
         setParent(this.grabbedNode, parent);
@@ -92,6 +101,16 @@ const addListeners = function(){
     this.inGesture = false;
 
     cy.endBatch();
+  });
+
+  this.addListener('taphold', 'node', e => {
+    if( this.inGesture ){ return; } // shouldn't be possible, but just in case...
+
+    const node = e.target;
+
+    if( options.tapholdToSplit ){
+      this.split(node);
+    }
   });
 };
 

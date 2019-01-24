@@ -5,7 +5,7 @@ cytoscape-compound-drag-and-drop
 
 ## Description
 
-Drag-and-drop UI for creating and editing the children of compound parent nodes ([demo](https://cytoscape.github.io/cytoscape.js-compound-drag-and-drop))
+Drag-and-drop UI for creating and editing the children of compound parent nodes ([demo](http://cytoscape.github.io/cytoscape.js-compound-drag-and-drop))
 
 This extension allows the user to drag a node over top of another node to create or add to compound parent nodes.  When dragging and dropping an orphan node over a parent node, the orphan is added to the parent.  When dragging and dropping an orphan node over another orphan node, both orphan nodes are added to a newly created parent.
 
@@ -64,7 +64,13 @@ The `options` object is outlined below with the default values:
 
 ```js
 const options = {
-  // TODO
+  dropTarget: node => true, // filter function to specify which nodes are valid drop targets
+  grabbedNode: node => true, // filter function to specify which nodes are valid to grab and drop into other nodes
+  newParentNode: (grabbedNode, dropTarget) => ({}), // specifies element json for parent nodes added by dropping an orphan node on another orphan
+  newJoinParentNode: (joinedNodes) => ({}), // specifies element json for parent nodes added by calls to join(joinedNodes)
+  preview: true, // whether to add a preview node (on over) to simulate the resultant compound (on drop)
+  tapholdToSplit: true, // whether to perform a split on a node on taphold
+  threshold: 10 // adds a padding to the drop target area to make dropping easier
 };
 ```
 
@@ -79,8 +85,9 @@ cdnd.split(nodes); // split nodes from their parents
 
 cdnd.split(parents); // split up all children in each parent
 
-// TODO
-cdnd.join(nodes); // join nodes into a single parent
+cdnd.join(orphanNodes); // join nodes into a single (new) parent
+
+cdnd.join(parentAndOrphanNodes); // join orphan nodes into parent (only 1 parent allowed in the passed collection)
 
 cdnd.destroy(); // removes the UI
 ```
@@ -98,10 +105,11 @@ These events are emitted by the extension during its gesture cycle.
   - When dropping on a parent node, `parentNode` and `dropTargetNode` are the same.
   - When dropping on a non-parent node, `parentNode` is a new node and `dropTargetNode` and `droppedNode` are made to be the children of `parentNode`.
   - Because changing compound hierarchy necessitates replacing child elements, the references to `droppedNode` and `dropTargetNode` may be different than in other events.  For this reason, it may make sense to use delegate selectors on listeners added to the core, e.g.: `cy.on('cdnddrop', 'node', ({ target: droppedNode }, dropTargetNode, parentNode)) => {}`
+  - If you want to run a post-step, e.g. to run a layout on the children, you should do so in a listener callback on `cdnddrop`.
 
 ## Classes
 
-These classes are applied to
+These classes are applied to nodes during the gesture cycle.  You can use them in your stylesheet to customise the look of the nodes during different phases of the gesture.
 
 - `cdnd-drop-target` : Applied to a drop target node, while the grabbed node is over it.
 - `cdnd-preview` : Applied to a preview node (when `options.preview === true`).  The preview node is automatically sized to simulate the resulant compound bounds on drop.  For best effect, the preview node should be styled similarly to the compound parent nodes it is simulating.
