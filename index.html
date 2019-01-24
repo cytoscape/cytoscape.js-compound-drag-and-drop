@@ -35,7 +35,7 @@
 				font-weight: bold;
 			}
 
-			#split {
+			#buttons {
 				position: absolute;
 				right: 0;
 				top: 0;
@@ -130,6 +130,10 @@
 					cdnd.split( cy.$('node:selected') );
 				});
 
+				document.getElementById('join').addEventListener('click', function(){
+					cdnd.join( cy.$('node:selected') );
+				});
+
 			});
 		</script>
 	</head>
@@ -139,7 +143,10 @@
 
 		<div id="cy"></div>
 
-		<button id="split">Split selected nodes</button>
+		<div id="buttons">
+			<button id="join">Join selected nodes</button>
+			<button id="split">Split selected nodes</button>
+		</div>
 
 	</body>
 
