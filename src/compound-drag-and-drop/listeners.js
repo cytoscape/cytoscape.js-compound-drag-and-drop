@@ -1,7 +1,7 @@
 const {
-  isParent, isChild,
-  getBounds, getBoundsTuple, boundsOverlap, expandBounds,
-  setParent, freshRef
+  isParent, isChild, isOnlyChild,
+  getBounds, getBoundsTuple, boundsOverlap, expandBounds, getBoundsCopy,
+  setParent, removeParent
 } = require('./util');
 
 const addListener = function(event, selector, callback){
@@ -19,98 +19,124 @@ const addListeners = function(){
 
   this.addListener('grab', 'node', e => {
     const node = e.target;
+    const isMultiplySelected = n => n.selected() && cy.elements('node:selected').length > 1;
+    const canBeGrabbed = n => !isParent(n) && !isMultiplySelected(n) && options.grabbedNode(n);
+    const canBeDropTarget = n => !isChild(n) && !n.same(node) && options.dropTarget(n);
+    const canPullFromParent = n => isChild(n);
 
-    if(
-      !this.enabled
-      || isParent(node) || isChild(node)
-      || (node.selected() && cy.elements('node:selected').length > 1) // dragging multiple nodes not allowed
-      || !options.grabbedNode(node)
-    ){ return; }
+    if( !this.enabled || !canBeGrabbed(node) ){ return; }
 
     this.inGesture = true;
     this.grabbedNode = node;
-    this.boundsTuples = cy.nodes(options.dropTarget).not(node).map(getBoundsTuple);
+    this.boundsTuples = cy.nodes(canBeDropTarget).map(getBoundsTuple);
     this.dropTarget = cy.collection();
+    this.dropSibling = cy.collection();
+
+    if( canPullFromParent(node) ){
+      this.dropTarget = node.parent();
+      this.dropTargetBounds = getBoundsCopy(this.dropTarget);
+    }
+
+    this.grabbedNode.addClass('cdnd-grabbed-node');
+    this.dropTarget.addClass('cdnd-drop-target');
+
+    node.emit('cdndgrab');
   });
 
   this.addListener('drag', 'node', () => {
     if( !this.inGesture || !this.enabled ){ return; }
 
-    cy.startBatch();
-    const bb = expandBounds( getBounds(this.grabbedNode), options.threshold );
-    const overlappingNodes = this.boundsTuples.filter(t => boundsOverlap(bb, t.bb)).map(t => t.node);
+    if( this.dropTarget.nonempty() ){ // already in a parent
+      const bb = expandBounds( getBounds(this.grabbedNode), options.outThreshold );
+      const parent = this.dropTarget;
+      const rmFromParent = !boundsOverlap(this.dropTargetBounds, bb);
+      const grabbedIsOnlyChild = isOnlyChild(this.grabbedNode);
 
-    this.dropTarget.removeClass('cdnd-drop-target');
+      if( rmFromParent ){
+        removeParent(this.grabbedNode);
+        removeParent(this.dropSibling);
 
-    if( overlappingNodes.length > 0 ){
-      const overlappingParents = overlappingNodes.filter(isParent);
+        this.dropTarget.removeClass('cdnd-drop-target');
+        this.dropSibling.removeClass('cdnd-drop-sibling');
 
-      this.dropTarget = overlappingParents[0] || overlappingNodes[0]; // TODO select particular one by metric
+        if(
+          this.dropSibling.nonempty() // remove extension-created parents on out
+          || grabbedIsOnlyChild // remove empty parents
+        ){
+          this.dropTarget.remove();
+        }
 
-      this.addPreview();
-      this.resizePreview();
+        // make sure the removal updates the bounds tuples properly
+        for( let i = this.boundsTuples.length - 1; i >= 0; i-- ){
+          let tuple = this.boundsTuples[i];
 
-      this.dropTarget.addClass('cdnd-drop-target');
+          if( tuple.node.same(this.dropTarget) ){
+            if( this.dropTarget.removed() ){
+              this.boundsTuples.splice(i, 1);
+            } else {
+              tuple.bb = getBoundsCopy(this.dropTarget);
+            }
 
-      this.grabbedNode.emit('cdndover', [this.dropTarget]);
-    } else { // no overlapping nodes
-      if( this.dropTarget.nonempty() ){
-        this.grabbedNode.emit('cdndout', [this.dropTarget]);
+            break;
+          }
+        }
+
+        this.dropTarget = cy.collection();
+        this.dropSibling = cy.collection();
+        this.dropTargetBounds = null;
+
+        this.grabbedNode.emit('cdndout', [parent]);
       }
+    } else { // not in a parent
+      const bb = expandBounds( getBounds(this.grabbedNode), options.overThreshold );
+      const overlappingNodes = this.boundsTuples.filter(t => boundsOverlap(bb, t.bb)).map(t => t.node);
 
-      this.removePreview();
+      if( overlappingNodes.length > 0 ){ // potential parent
+        const overlappingParents = overlappingNodes.filter(isParent);
+        let parent, sibling;
 
-      this.dropTarget = cy.collection();
+        if( overlappingParents.length > 0 ){
+          sibling = cy.collection();
+          parent = overlappingParents[0]; // TODO maybe use a metric here to select which one
+        } else {
+          sibling = overlappingNodes[0]; // TODO maybe use a metric here to select which one
+          parent = cy.add( options.newParentNode(this.grabbedNode, sibling) );
+        }
+
+        parent.addClass('cdnd-drop-target');
+        sibling.addClass('cdnd-drop-sibling');
+
+        setParent(sibling, parent);
+
+        this.dropTargetBounds = getBoundsCopy(parent);
+
+        setParent(this.grabbedNode, parent);
+
+        this.dropTarget = parent;
+        this.dropSibling = sibling;
+
+        this.grabbedNode.emit('cdndover', [parent, sibling]);
+      }
     }
-
-    cy.endBatch();
   });
 
   this.addListener('free', 'node', () => {
-    if( !this.inGesture ){ return; }
+    if( !this.inGesture || !this.enabled ){ return; }
 
-    cy.startBatch();
+    const { grabbedNode, dropTarget, dropSibling } = this;
 
-    this.dropTarget.removeClass('cdnd-drop-target');
+    grabbedNode.removeClass('cdnd-grabbed-node');
+    dropTarget.removeClass('cdnd-drop-target');
+    dropSibling.removeClass('cdnd-drop-sibling');
 
-    this.removePreview();
-
-    if( this.dropTarget.nonempty() ){
-      this.dropTarget.removeClass('cdnd-drop-target');
-
-      if( this.dropTarget.isParent() ){
-        setParent(this.grabbedNode, this.dropTarget);
-
-        this.grabbedNode = freshRef(this.grabbedNode);
-
-        this.grabbedNode.emit('cdnddrop', [this.dropTarget, this.dropTarget]);
-      } else {
-        const parent = cy.add( options.newParentNode(this.grabbedNode, this.dropTarget) );
-
-        setParent(this.dropTarget, parent);
-        setParent(this.grabbedNode, parent);
-
-        this.dropTarget = freshRef(this.dropTarget);
-        this.grabbedNode = freshRef(this.grabbedNode);
-
-        this.grabbedNode.emit('cdnddrop', [parent, this.dropTarget]);
-      }
-    }
-
+    this.grabbedNode = cy.collection();
     this.dropTarget = cy.collection();
+    this.dropSibling = cy.collection();
+    this.dropTargetBounds = null;
+    this.boundsTuples = [];
     this.inGesture = false;
 
-    cy.endBatch();
-  });
-
-  this.addListener('taphold', 'node', e => {
-    if( this.inGesture ){ return; } // shouldn't be possible, but just in case...
-
-    const node = e.target;
-
-    if( options.tapholdToSplit ){
-      this.split(node);
-    }
+    grabbedNode.emit('cdnddrop', [dropTarget, dropSibling]);
   });
 };
 

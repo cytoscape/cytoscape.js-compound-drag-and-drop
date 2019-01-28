@@ -1,12 +1,14 @@
 const isParent = n => n.isParent();
 const isChild = n => n.isChild();
+const isOnlyChild = n => isChild(n) && n.parent().children().length === 1;
 
 const getBounds = n => n.boundingBox({ includeOverlays: false });
-const getBoundsTuple = n => ({ node: n, bb: getBounds(n) });
+const getBoundsTuple = n => ({ node: n, bb: copyBounds(getBounds(n)) });
+const copyBounds = bb => ({ x1: bb.x1, x2: bb.x2, y1: bb.y1, y2: bb.y2, w: bb.w, h: bb.h });
+const getBoundsCopy = n => copyBounds(getBounds(n));
 
 const removeParent = n => n.move({ parent: null });
 const setParent = (n, parent) => n.move({ parent: parent.id() });
-const freshRef = n => n.cy().getElementById(n.id());
 
 const boundsOverlap = (bb1, bb2) => {
   // case: one bb to right of other
@@ -40,8 +42,18 @@ const expandBounds = (bb, padding) => {
   };
 };
 
+const copyPosition = p => ({ x: p.x, y: p.y });
+
+const arePointsFartherApartThan = (p1, p2, dist) => {
+  const dx = p2.x - p1.x;
+  const dy = p2.y - p1.y;
+
+  return dx * dx + dy * dy > dist * dist;
+};
+
 module.exports = {
-  isParent, isChild,
-  getBoundsTuple, boundsOverlap, getBounds, expandBounds,
-  removeParent, setParent, freshRef
+  isParent, isChild, isOnlyChild,
+  getBoundsTuple, boundsOverlap, getBounds, expandBounds, copyBounds, getBoundsCopy,
+  copyPosition, arePointsFartherApartThan,
+  removeParent, setParent
  };
