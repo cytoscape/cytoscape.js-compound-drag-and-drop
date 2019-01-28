@@ -5,7 +5,7 @@ cytoscape-compound-drag-and-drop
 
 ## Description
 
-Drag-and-drop compound node UI for adding and removing children ([demo](http://cytoscape.github.io/cytoscape.js-compound-drag-and-drop), [protein complex demo](http://cytoscape.github.io/cytoscape.js-compound-drag-and-drop/demo-complex.html))
+Compound node drag-and-drop UI for adding and removing children ([demo](http://cytoscape.github.io/cytoscape.js-compound-drag-and-drop), [protein complex demo](http://cytoscape.github.io/cytoscape.js-compound-drag-and-drop/demo-complex.html))
 
 
 ## Dependencies
