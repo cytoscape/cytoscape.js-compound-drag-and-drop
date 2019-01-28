@@ -7,10 +7,10 @@
 
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 
-		<script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+		<!-- <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script> -->
 
 		<!-- for testing with local version of cytoscape.js -->
-		<!--<script src="../cytoscape.js/build/cytoscape.js"></script>-->
+		<script src="cytoscape.3.4.0-snapshot.umd.js"></script>
 
 		<script src="cytoscape-compound-drag-and-drop.js"></script>
 
@@ -34,14 +34,6 @@
 				font-size: 1em;
 				font-weight: bold;
 			}
-
-			#buttons {
-				position: absolute;
-				right: 0;
-				top: 0;
-				margin: 1em;
-				z-index: 2;
-			}
 		</style>
 
 		<script>
@@ -54,7 +46,6 @@
 						{
 							selector: 'node',
 							style: {
-								'z-index': 1,
 								'label': 'data(id)'
 							}
 						},
@@ -75,37 +66,24 @@
 						},
 
 						{
-							selector: '.cdnd-parent',
-							style: {
-								'border-color': 'red'
-							}
-						},
-
-						{
-							selector: '.cdnd-sibling',
+							selector: '.cdnd-grabbed-node',
 							style: {
 								'background-color': 'red'
 							}
 						},
 
 						{
-							selector: '.cdnd-preview',
+							selector: '.cdnd-drop-sibling',
 							style: {
-								'label': '',
-								'shape': 'rectangle',
-								'padding': 10,
-								'background-color': '#eee',
-								'border-color': 'red',
-								'border-width': 1,
-								'z-index': 0
+								'background-color': 'red'
 							}
 						},
 
 						{
-							selector: '.cdnd-hidden-parent',
+							selector: '.cdnd-drop-target',
 							style: {
-								'background-opacity': 0,
-								'border-opacity': 0
+								'border-color': 'red',
+								'border-style': 'dashed'
 							}
 						}
 					],
@@ -126,14 +104,6 @@
 
 				var cdnd = cy.compoundDragAndDrop();
 
-				document.getElementById('split').addEventListener('click', function(){
-					cdnd.split( cy.$('node:selected') );
-				});
-
-				document.getElementById('join').addEventListener('click', function(){
-					cdnd.join( cy.$('node:selected') );
-				});
-
 			});
 		</script>
 	</head>
@@ -142,12 +112,6 @@
 		<h1>cytoscape-compound-drag-and-drop demo</h1>
 
 		<div id="cy"></div>
-
-		<div id="buttons">
-			<button id="join">Join selected nodes</button>
-			<button id="split">Split selected nodes</button>
-		</div>
-
 	</body>
 
 </html>
