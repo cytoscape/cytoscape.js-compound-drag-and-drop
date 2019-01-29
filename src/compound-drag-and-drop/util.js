@@ -42,18 +42,8 @@ const expandBounds = (bb, padding) => {
   };
 };
 
-const copyPosition = p => ({ x: p.x, y: p.y });
-
-const arePointsFartherApartThan = (p1, p2, dist) => {
-  const dx = p2.x - p1.x;
-  const dy = p2.y - p1.y;
-
-  return dx * dx + dy * dy > dist * dist;
-};
-
 module.exports = {
   isParent, isChild, isOnlyChild,
   getBoundsTuple, boundsOverlap, getBounds, expandBounds, copyBounds, getBoundsCopy,
-  copyPosition, arePointsFartherApartThan,
   removeParent, setParent
  };
