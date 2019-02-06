@@ -3,14 +3,11 @@
 <html>
 
   <head>
-    <title>cytoscape-compound-drag-and-drop.js demo</title>
+    <title>cytoscape-compound-drag-and-drop demo</title>
 
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
 
-    <!-- <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script> -->
-
-    <!-- for testing with local version of cytoscape.js -->
-    <script src="cytoscape.3.4.0-snapshot.umd.js"></script>
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
 
     <script src="cytoscape-compound-drag-and-drop.js"></script>
 
@@ -112,7 +109,6 @@
 
         var cdnd = cy.compoundDragAndDrop();
         var removeEmptyParents = false;
-        var T = 5000;
 
         var isParentOfOneChild = function(node){
           return node.isParent() && node.children().length === 1;
@@ -141,42 +137,14 @@
           }
         });
 
-        var onClick = function(id, handler){
-          document.getElementById(id).addEventListener('click', handler);
-        };
-
-        onClick('remove-1ch-parents', function(){
+        // toggle check handler
+        document.getElementById('remove-1ch-parents').addEventListener('click', function(){
           removeEmptyParents = !removeEmptyParents;
 
           if( removeEmptyParents ){
             removeParentsOfOneChild();
           }
         });
-
-        onClick('rm-a', function(){
-          setTimeout(function(){ cy.$('#a').remove(); }, T);
-        });
-
-        onClick('rm-b', function(){
-          setTimeout(function(){ cy.$('#b').remove(); }, T);
-        });
-
-        onClick('rm-c', function(){
-          setTimeout(function(){ cy.$('#c').remove(); }, T);
-        });
-
-        onClick('rm-d', function(){
-          setTimeout(function(){ cy.$('#d').remove(); }, T);
-        });
-
-        onClick('rm-p', function(){
-          setTimeout(function(){ cy.$('#p').remove(); }, T);
-        });
-
-        onClick('add-e', function(){
-          setTimeout(function(){ cy.add({ data: { id: 'e' }, position: { x: 540, y: 400 } }); }, T);
-        });
-
       });
     </script>
   </head>
@@ -189,16 +157,6 @@
     <div id="options">
         <input id="remove-1ch-parents" type="checkbox" value="false" />
         <label for="remove-1ch-parents">Remove parents with only one child</label>
-        &nbsp;|&nbsp;
-        <label>Remove after 5s:</label>
-        <button id="rm-a">a</button>
-        <button id="rm-b">b</button>
-        <button id="rm-c">c</button>
-        <button id="rm-d">d</button>
-        <button id="rm-p">p</button>
-        &nbsp;|&nbsp;
-        <label>Add after 5s:</label>
-        <button id="add-e">e</button>
     </div>
   </body>
 
