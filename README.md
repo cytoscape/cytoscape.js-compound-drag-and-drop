@@ -1,6 +1,8 @@
 cytoscape-compound-drag-and-drop
 ================================================================================
 
+[![DOI](https://zenodo.org/badge/165720339.svg)](https://zenodo.org/badge/latestdoi/165720339)
+
 ## Description
 
 Compound node drag-and-drop UI for adding and removing children ([demo](http://cytoscape.github.io/cytoscape.js-compound-drag-and-drop))
