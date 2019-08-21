@@ -98,8 +98,10 @@
               { data: { id: 'a' } },
               { data: { id: 'b' } },
               { data: { id: 'c' } },
-              { data: { id: 'd', parent: 'p' } },
-              { data: { id: 'p'} }
+              { data: { id: 'd', parent: 'p1' } },
+              { data: { id: 'e', parent: 'p2' } },
+              { data: { id: 'p1' } },
+              { data: { id: 'p2' } }
             ],
             edges: [
 
@@ -123,19 +125,19 @@
           cy.nodes().filter(isParentOfOneChild).forEach(removeParent);
         };
 
-        // custom handler to remove parents with only 1 child on drop
-        cy.on('cdndout', function(event, dropTarget){
-          if( removeEmptyParents && isParentOfOneChild(dropTarget) ){
-            removeParent(dropTarget);
-          }
-        });
+        // // custom handler to remove parents with only 1 child on drop
+        // cy.on('cdndout', function(event, dropTarget){
+        //   if( removeEmptyParents && isParentOfOneChild(dropTarget) ){
+        //     removeParent(dropTarget);
+        //   }
+        // });
 
-        // custom handler to remove parents with only 1 child (on remove of drop target or drop sibling)
-        cy.on('remove', function(event){
-          if( removeEmptyParents ){
-            removeParentsOfOneChild();
-          }
-        });
+        // // custom handler to remove parents with only 1 child (on remove of drop target or drop sibling)
+        // cy.on('remove', function(event){
+        //   if( removeEmptyParents ){
+        //     removeParentsOfOneChild();
+        //   }
+        // });
 
         // toggle check handler
         document.getElementById('remove-1ch-parents').addEventListener('click', function(){

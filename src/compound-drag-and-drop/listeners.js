@@ -21,9 +21,11 @@ const addListeners = function(){
   const canBeGrabbed = n => !isParent(n) && !isMultiplySelected(n) && options.grabbedNode(n);
   const canBeDropTarget = n => !isChild(n) && !n.same(this.grabbedNode) && options.dropTarget(n);
   const canBeDropSibling = n => isChild(n) && !n.same(this.grabbedNode) && options.dropSibling(n);
-  const canPullFromParent = n => isChild(n);
+  const canPullFromParent = n => isChild(n) || isParent(n);
   const canBeInBoundsTuple = n => (canBeDropTarget(n) || canBeDropSibling(n)) && !n.same(this.dropTarget);
   const updateBoundsTuples = () => this.boundsTuples = cy.nodes(canBeInBoundsTuple).map(getBoundsTuple);
+  const addToCompoundDelayTime = options.addToCompoundDelayTime;
+  const outFromCompoundDelayTime = options.outFromGroupDelayTime;
 
   const reset = () => {
     this.grabbedNode.removeClass('cdnd-grabbed-node');
@@ -36,6 +38,8 @@ const addListeners = function(){
     this.dropTargetBounds = null;
     this.boundsTuples = [];
     this.inGesture = false;
+    this.addTimer = null;
+    this.removeTimer = null;
   };
 
   this.addListener('grab', 'node', e => {
@@ -103,26 +107,29 @@ const addListeners = function(){
       const grabbedIsOnlyChild = isOnlyChild(this.grabbedNode);
 
       if( rmFromParent ){
-        removeParent(this.grabbedNode);
-        removeParent(this.dropSibling);
+        clearTimeout(this.removeTimer);
+        this.removeTimer = setTimeout(() => {
+          removeParent(this.grabbedNode);
+          removeParent(this.dropSibling);
 
-        this.dropTarget.removeClass('cdnd-drop-target');
-        this.dropSibling.removeClass('cdnd-drop-sibling');
+          this.dropTarget.removeClass('cdnd-drop-target');
+          this.dropSibling.removeClass('cdnd-drop-sibling');
 
-        if(
-          this.dropSibling.nonempty() // remove extension-created parents on out
-          || grabbedIsOnlyChild // remove empty parents
-        ){
-          this.dropTarget.remove();
-        }
+          if(
+            this.dropSibling.nonempty() // remove extension-created parents on out
+            || grabbedIsOnlyChild // remove empty parents
+          ){
+            this.dropTarget.remove();
+          }
 
-        this.dropTarget = cy.collection();
-        this.dropSibling = cy.collection();
-        this.dropTargetBounds = null;
+          this.dropTarget = cy.collection();
+          this.dropSibling = cy.collection();
+          this.dropTargetBounds = null;
 
-        updateBoundsTuples();
+          updateBoundsTuples();
 
-        this.grabbedNode.emit('cdndout', [parent, sibling]);
+          this.grabbedNode.emit('cdndout', [parent, sibling]);
+        }, outFromCompoundDelayTime)
       }
     } else { // not in a parent
       const bb = expandBounds( getBounds(this.grabbedNode), options.overThreshold );
@@ -130,30 +137,33 @@ const addListeners = function(){
       const overlappingNodes = this.boundsTuples.filter(tupleOverlaps).map(t => t.node);
 
       if( overlappingNodes.length > 0 ){ // potential parent
-        const overlappingParents = overlappingNodes.filter(isParent);
-        let parent, sibling;
+        clearTimeout(this.addTimer);
+        this.addTimer = setTimeout(() => {
+          const overlappingParents = overlappingNodes.filter(isParent);
+          let parent, sibling;
 
-        if( overlappingParents.length > 0 ){
-          sibling = cy.collection();
-          parent = overlappingParents[0]; // TODO maybe use a metric here to select which one
-        } else {
-          sibling = overlappingNodes[0]; // TODO maybe use a metric here to select which one
-          parent = cy.add( options.newParentNode(this.grabbedNode, sibling) );
-        }
+          if( overlappingParents.length > 0 ){
+            sibling = cy.collection();
+            parent = overlappingParents[0]; // TODO maybe use a metric here to select which one
+          } else {
+            sibling = overlappingNodes[0]; // TODO maybe use a metric here to select which one
+            parent = cy.add( options.newParentNode(this.grabbedNode, sibling) );
+          }
 
-        parent.addClass('cdnd-drop-target');
-        sibling.addClass('cdnd-drop-sibling');
+          parent.addClass('cdnd-drop-target');
+          sibling.addClass('cdnd-drop-sibling');
 
-        setParent(sibling, parent);
+          setParent(sibling, parent);
 
-        this.dropTargetBounds = getBoundsCopy(parent);
+          this.dropTargetBounds = getBoundsCopy(parent);
 
-        setParent(this.grabbedNode, parent);
+          setParent(this.grabbedNode, parent);
 
-        this.dropTarget = parent;
-        this.dropSibling = sibling;
+          this.dropTarget = parent;
+          this.dropSibling = sibling;
 
-        this.grabbedNode.emit('cdndover', [parent, sibling]);
+          this.grabbedNode.emit('cdndover', [parent, sibling]);
+        }, addToCompoundDelayTime)
       }
     }
   });
