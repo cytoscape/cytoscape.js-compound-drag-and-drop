@@ -110,7 +110,7 @@ These events are emitted by the extension during its gesture cycle.
 - `cdndover` : Emitted on a grabbed node when it is dragged over another node.
   - `grabbedNode.on('cdndover', (event, dropTarget, dropSibling) => {})`
 - `cdndout` : Emmitted on a grabbed node when it is dragged out of its parent.
-  - `grabbedNode.on('cdndout, (event, dropTarget, dropSibling) => {})`
+  - `grabbedNode.on('cdndout', (event, dropTarget, dropSibling) => {})`
 - `cdnddrop` : Emitted on a grabbed node when it is dropped (freed).
   - `droppedNode.on('cdnddrop', (event, dropTarget, dropSibling) => {})`
 
