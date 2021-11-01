@@ -1,0 +1,130 @@
+<!DOCTYPE>
+
+<html>
+
+  <head>
+    <title>cytoscape-compound-drag-and-drop demo - real parents</title>
+
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1, maximum-scale=1">
+
+    <script src="https://unpkg.com/cytoscape/dist/cytoscape.min.js"></script>
+
+    <script src="cytoscape-compound-drag-and-drop.js"></script>
+
+    <style>
+      body {
+        font-family: helvetica neue, helvetica, liberation sans, arial, sans-serif;
+        font-size: 14px;
+      }
+
+      .description {
+        max-width: 400px;
+      }
+
+      #cy {
+        height: calc(100% - 8rem);
+      }
+
+      h1 {
+        opacity: 0.5;
+        font-size: 1em;
+        font-weight: bold;
+      }
+
+      #options {
+        z-index: 2;
+        position: absolute;
+        right: 0;
+        top: 0;
+        margin: 0.5em;
+      }
+    </style>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function(){
+
+        var cy = window.cy = cytoscape({
+          container: document.getElementById('cy'),
+
+          style: [
+            {
+              selector: 'node',
+              style: {
+                'label': 'data(id)'
+              }
+            },
+
+            {
+              selector: 'node:parent',
+              style: {
+                'label': 'data(id)'
+              }
+            },
+
+            {
+              selector: 'edge',
+              style: {
+                'curve-style': 'bezier',
+                'target-arrow-shape': 'triangle'
+              }
+            },
+
+            {
+              selector: '.cdnd-grabbed-node',
+              style: {
+                'background-color': 'red'
+              }
+            },
+
+            {
+              selector: '.cdnd-drop-sibling',
+              style: {
+                'background-color': 'red'
+              }
+            },
+
+            {
+              selector: '.cdnd-drop-target',
+              style: {
+                'border-color': 'red',
+                'border-style': 'dashed'
+              }
+            }
+          ],
+
+          elements: {
+            nodes: [
+              { data: { id: 'a' } },
+              { data: { id: 'b' } },
+              { data: { id: 'c' } },
+              { data: { id: 'd', parent: 'p' } },
+              { data: { id: 'p'} }
+            ],
+            edges: [
+
+            ]
+          }
+        });
+
+        cy.compoundDragAndDrop({
+          newParentNode: (grabbedNode, dropTarget) => {
+            return dropTarget;
+          },
+          allowOrphanedParents: true,
+        });
+      });
+    </script>
+  </head>
+
+  <body>
+    <h1>cytoscape-compound-drag-and-drop demo</h1>
+    <div class="description">
+      <p>
+        cytoscape-compound-drag-and-drop demo using real nodes as parents with <b>allowOrphanedParents</b> and <b>newParentNode</b> callback
+      </p>
+
+    </div>
+    <div id="cy"></div>
+  </body>
+
+</html>

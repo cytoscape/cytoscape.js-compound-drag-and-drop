@@ -110,8 +110,8 @@ const addListeners = function(){
         this.dropSibling.removeClass('cdnd-drop-sibling');
 
         if(
-          this.dropSibling.nonempty() // remove extension-created parents on out
-          || grabbedIsOnlyChild // remove empty parents
+            (this.dropSibling.nonempty() // remove extension-created parents on out
+          || grabbedIsOnlyChild) && !options.allowOrphanedParents // remove empty parents
         ){
           this.dropTarget.remove();
         }
@@ -120,7 +120,9 @@ const addListeners = function(){
         this.dropSibling = cy.collection();
         this.dropTargetBounds = null;
 
-        updateBoundsTuples();
+        if(!options.allowOrphanedParents) {
+          updateBoundsTuples();
+        }
 
         this.grabbedNode.emit('cdndout', [parent, sibling]);
       }

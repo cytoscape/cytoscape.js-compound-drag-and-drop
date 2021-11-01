@@ -158,6 +158,7 @@ module.exports = {
   newParentNode: function newParentNode(grabbedNode, dropSibling) {
     return {};
   }, // specifies element json for parent nodes added by dropping an orphan node on another orphan (a drop sibling)
+  allowOrphanedParents: false, // keep parent nodes when last child is removed. Useful in combination with newParentNode callback
   overThreshold: 10, // make dragging over a drop target easier by expanding the hit area by this amount on all sides
   outThreshold: 10 // make dragging out of a drop target a bit harder by expanding the hit area by this amount on all sides
 };
@@ -313,8 +314,8 @@ var addListeners = function addListeners() {
         _this.dropTarget.removeClass('cdnd-drop-target');
         _this.dropSibling.removeClass('cdnd-drop-sibling');
 
-        if (_this.dropSibling.nonempty() // remove extension-created parents on out
-        || grabbedIsOnlyChild // remove empty parents
+        if ((_this.dropSibling.nonempty() // remove extension-created parents on out
+        || grabbedIsOnlyChild) && !options.allowOrphanedParents // remove empty parents
         ) {
             _this.dropTarget.remove();
           }
@@ -323,7 +324,9 @@ var addListeners = function addListeners() {
         _this.dropSibling = cy.collection();
         _this.dropTargetBounds = null;
 
-        updateBoundsTuples();
+        if (!options.allowOrphanedParents) {
+          updateBoundsTuples();
+        }
 
         _this.grabbedNode.emit('cdndout', [parent, sibling]);
       }
