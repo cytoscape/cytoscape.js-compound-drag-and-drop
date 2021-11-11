@@ -149,10 +149,10 @@ module.exports = {
   grabbedNode: function grabbedNode(node) {
     return true;
   }, // filter function to specify which nodes are valid to grab and drop into other nodes
-  dropTarget: function dropTarget(node) {
+  dropTarget: function dropTarget(_dropTarget, grabbedNode) {
     return true;
   }, // filter function to specify which parent nodes are valid drop targets
-  dropSibling: function dropSibling(node) {
+  dropSibling: function dropSibling(_dropSibling, grabbedNode) {
     return true;
   }, // filter function to specify which orphan nodes are valid drop siblings
   newParentNode: function newParentNode(grabbedNode, dropSibling) {
@@ -205,10 +205,10 @@ var addListeners = function addListeners() {
     return !isParent(n) && !isMultiplySelected(n) && options.grabbedNode(n);
   };
   var canBeDropTarget = function canBeDropTarget(n) {
-    return !isChild(n) && !n.same(_this.grabbedNode) && options.dropTarget(n);
+    return !isChild(n) && !n.same(_this.grabbedNode) && options.dropTarget(n, _this.grabbedNode);
   };
   var canBeDropSibling = function canBeDropSibling(n) {
-    return isChild(n) && !n.same(_this.grabbedNode) && options.dropSibling(n);
+    return isChild(n) && !n.same(_this.grabbedNode) && options.dropSibling(n, _this.grabbedNode);
   };
   var canPullFromParent = function canPullFromParent(n) {
     return isChild(n);

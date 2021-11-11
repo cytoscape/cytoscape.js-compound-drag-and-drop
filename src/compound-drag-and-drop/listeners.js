@@ -19,8 +19,8 @@ const addListeners = function(){
 
   const isMultiplySelected = n => n.selected() && cy.elements('node:selected').length > 1;
   const canBeGrabbed = n => !isParent(n) && !isMultiplySelected(n) && options.grabbedNode(n);
-  const canBeDropTarget = n => !isChild(n) && !n.same(this.grabbedNode) && options.dropTarget(n);
-  const canBeDropSibling = n => isChild(n) && !n.same(this.grabbedNode) && options.dropSibling(n);
+  const canBeDropTarget = n => !isChild(n) && !n.same(this.grabbedNode) && options.dropTarget(n, this.grabbedNode);
+  const canBeDropSibling = n => isChild(n) && !n.same(this.grabbedNode) && options.dropSibling(n, this.grabbedNode);
   const canPullFromParent = n => isChild(n);
   const canBeInBoundsTuple = n => (canBeDropTarget(n) || canBeDropSibling(n)) && !n.same(this.dropTarget);
   const updateBoundsTuples = () => this.boundsTuples = cy.nodes(canBeInBoundsTuple).map(getBoundsTuple);
