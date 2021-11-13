@@ -2,7 +2,6 @@ const path = require('path');
 const pkg = require('./package.json');
 const camelcase = require('camelcase');
 const process = require('process');
-const webpack = require('webpack');
 const env = process.env;
 const NODE_ENV = env.NODE_ENV;
 const MIN = env.MIN;
@@ -23,14 +22,9 @@ let config = {
     ]
   },
   externals: PROD ? Object.keys( pkg.dependencies || {} ) : [],
-  plugins: MIN ? [
-    new webpack.optimize.UglifyJsPlugin({
-      compress: {
-        warnings: false,
-        drop_console: false,
-      }
-    })
-  ] : []
+  optimization: {
+    minimize: !!MIN
+  },
 };
 
 module.exports = config;
