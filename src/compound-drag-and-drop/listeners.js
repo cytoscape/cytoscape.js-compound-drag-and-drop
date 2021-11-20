@@ -111,9 +111,10 @@ const addListeners = function(){
         this.dropTarget.removeClass('cdnd-drop-target');
         this.dropSibling.removeClass('cdnd-drop-sibling');
 
+        let isFakeParent = this.dropTarget && this.dropTarget.hasClass('cdnd-new-parent');
         if(
-          this.dropSibling.nonempty() // remove extension-created parents on out
-          || grabbedIsOnlyChild // remove empty parents
+            (this.dropSibling.nonempty() // remove extension-created parents on out
+          || grabbedIsOnlyChild) && isFakeParent// remove empty parents
         ){
           this.dropTarget.remove();
         }
@@ -122,7 +123,9 @@ const addListeners = function(){
         this.dropSibling = cy.collection();
         this.dropTargetBounds = null;
 
-        updateBoundsTuples();
+        if(isFakeParent) {
+          updateBoundsTuples();
+        }
 
         this.grabbedNode.emit('cdndout', [parent, sibling]);
       }
@@ -144,6 +147,11 @@ const addListeners = function(){
         }
 
         parent.addClass('cdnd-drop-target');
+
+        if(parent !== sibling) {
+          parent.addClass('cdnd-new-parent');
+        }
+
         sibling.addClass('cdnd-drop-sibling');
 
         setParent(sibling, parent);

@@ -69,7 +69,6 @@ Plain HTML/JS has the extension registered for you automatically, because no `re
     - A gesture is cancelled on a drop sibling.
     - The grabbed node is the only child of the drop target, and the grabbed node is dragged out of the drop target.
 
-
 ## API
 
 Create an instance of the drag-and-drop UI:
@@ -85,7 +84,7 @@ const options = {
   grabbedNode: node => true, // filter function to specify which nodes are valid to grab and drop into other nodes
   dropTarget: (dropTarget, grabbedNode) => true, // filter function to specify which parent nodes are valid drop targets
   dropSibling: (dropSibling, grabbedNode) => true, // filter function to specify which orphan nodes are valid drop siblings
-  newParentNode: (grabbedNode, dropSibling) => ({}), // specifies element json for parent nodes added by dropping an orphan node on another orphan (a drop sibling)
+  newParentNode: (grabbedNode, dropSibling) => ({}), // specifies element json for parent nodes added by dropping an orphan node on another orphan (a drop sibling). You can chose to return the dropSibling in which case it becomes the parent node and will be preserved after all its children are removed.
   boundingBoxOptions: { // same as https://js.cytoscape.org/#eles.boundingBox, used when calculating if one node is dragged over another
     includeOverlays: false,
     includeLabels: true
@@ -130,6 +129,7 @@ These classes are applied to nodes during the gesture cycle.  You can use them i
 - `cdnd-grabbed-node` : Applied to the grabbed node, until it is dropped.
 - `cdnd-drop-target` : Applied to a drop target node, while the grabbed node is over it.
 - `cdnd-drop-sibling` : Applied to drop sibling node, while the grabbed node is over its drop target (parent).
+- `cdnd-new-parent` : Applied to a parent node that has been created after dragging a node over. This class will not be present if the parent node is the dropSibling - see the `newParentNode` callback function.
 
 ## Caveats
 
