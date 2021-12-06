@@ -53,6 +53,11 @@ module.exports = {
     return {};
   },
   // specifies element json for parent nodes added by dropping an orphan node on another orphan (a drop sibling)
+  boundingBoxOptions: {
+    // same as https://js.cytoscape.org/#eles.boundingBox, used when calculating if one node is dragged over another
+    includeOverlays: false,
+    includeLabels: true
+  },
   overThreshold: 10,
   // make dragging over a drop target easier by expanding the hit area by this amount on all sides
   outThreshold: 10 // make dragging out of a drop target a bit harder by expanding the hit area by this amount on all sides
@@ -152,12 +157,16 @@ var addListeners = function addListeners() {
     return isChild(n);
   };
 
+  var getBoundTuplesNode = function getBoundTuplesNode(n) {
+    return getBoundsTuple(n, options.boundingBoxOptions);
+  };
+
   var canBeInBoundsTuple = function canBeInBoundsTuple(n) {
     return (canBeDropTarget(n) || canBeDropSibling(n)) && !n.same(_this.dropTarget);
   };
 
   var updateBoundsTuples = function updateBoundsTuples() {
-    return _this.boundsTuples = cy.nodes(canBeInBoundsTuple).map(getBoundsTuple);
+    return _this.boundsTuples = cy.nodes(canBeInBoundsTuple).map(getBoundTuplesNode);
   };
 
   var reset = function reset() {
@@ -189,7 +198,7 @@ var addListeners = function addListeners() {
 
     if (canPullFromParent(node)) {
       _this.dropTarget = node.parent();
-      _this.dropTargetBounds = getBoundsCopy(_this.dropTarget);
+      _this.dropTargetBounds = getBoundsCopy(_this.dropTarget, options.boundingBoxOptions);
     }
 
     updateBoundsTuples();
@@ -208,7 +217,7 @@ var addListeners = function addListeners() {
     var newNode = e.target;
 
     if (canBeInBoundsTuple(newNode)) {
-      _this.boundsTuples.push(getBoundsTuple(newNode));
+      _this.boundsTuples.push(getBoundsTuple(newNode, options.boundingBoxOptions));
     }
   });
   this.addListener('remove', 'node', function (e) {
@@ -238,7 +247,7 @@ var addListeners = function addListeners() {
 
     if (_this.dropTarget.nonempty()) {
       // already in a parent
-      var bb = expandBounds(getBounds(_this.grabbedNode), options.outThreshold);
+      var bb = expandBounds(getBounds(_this.grabbedNode, options.boundingBoxOptions), options.outThreshold);
       var parent = _this.dropTarget;
       var sibling = _this.dropSibling;
       var rmFromParent = !boundsOverlap(_this.dropTargetBounds, bb);
@@ -267,7 +276,7 @@ var addListeners = function addListeners() {
       }
     } else {
       // not in a parent
-      var _bb = expandBounds(getBounds(_this.grabbedNode), options.overThreshold);
+      var _bb = expandBounds(getBounds(_this.grabbedNode, options.boundingBoxOptions), options.overThreshold);
 
       var tupleOverlaps = function tupleOverlaps(t) {
         return !t.node.removed() && boundsOverlap(_bb, t.bb);
@@ -297,7 +306,7 @@ var addListeners = function addListeners() {
         _sibling.addClass('cdnd-drop-sibling');
 
         setParent(_sibling, _parent);
-        _this.dropTargetBounds = getBoundsCopy(_parent);
+        _this.dropTargetBounds = getBoundsCopy(_parent, options.boundingBoxOptions);
         setParent(_this.grabbedNode, _parent);
         _this.dropTarget = _parent;
         _this.dropSibling = _sibling;
@@ -376,16 +385,14 @@ var isOnlyChild = function isOnlyChild(n) {
   return isChild(n) && n.parent().children().length === 1;
 };
 
-var getBounds = function getBounds(n) {
-  return n.boundingBox({
-    includeOverlays: false
-  });
+var getBounds = function getBounds(n, boundingBoxOptions) {
+  return n.boundingBox(boundingBoxOptions);
 };
 
-var getBoundsTuple = function getBoundsTuple(n) {
+var getBoundsTuple = function getBoundsTuple(n, boundingBoxOptions) {
   return {
     node: n,
-    bb: copyBounds(getBounds(n))
+    bb: copyBounds(getBounds(n, boundingBoxOptions))
   };
 };
 
@@ -400,8 +407,8 @@ var copyBounds = function copyBounds(bb) {
   };
 };
 
-var getBoundsCopy = function getBoundsCopy(n) {
-  return copyBounds(getBounds(n));
+var getBoundsCopy = function getBoundsCopy(n, boundingBoxOptions) {
+  return copyBounds(getBounds(n, boundingBoxOptions));
 };
 
 var removeParent = function removeParent(n) {

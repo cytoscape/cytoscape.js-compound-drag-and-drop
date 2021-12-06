@@ -2,10 +2,10 @@ const isParent = n => n.isParent();
 const isChild = n => n.isChild();
 const isOnlyChild = n => isChild(n) && n.parent().children().length === 1;
 
-const getBounds = n => n.boundingBox({ includeOverlays: false });
-const getBoundsTuple = n => ({ node: n, bb: copyBounds(getBounds(n)) });
+const getBounds = (n, boundingBoxOptions) => n.boundingBox(boundingBoxOptions);
+const getBoundsTuple = (n, boundingBoxOptions) => ({ node: n, bb: copyBounds(getBounds(n, boundingBoxOptions)) });
 const copyBounds = bb => ({ x1: bb.x1, x2: bb.x2, y1: bb.y1, y2: bb.y2, w: bb.w, h: bb.h });
-const getBoundsCopy = n => copyBounds(getBounds(n));
+const getBoundsCopy = (n, boundingBoxOptions) => copyBounds(getBounds(n, boundingBoxOptions));
 
 const removeParent = n => n.move({ parent: null });
 const setParent = (n, parent) => n.move({ parent: parent.id() });

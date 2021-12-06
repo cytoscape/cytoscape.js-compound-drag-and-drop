@@ -22,8 +22,10 @@ const addListeners = function(){
   const canBeDropTarget = n => !isChild(n) && !n.same(this.grabbedNode) && options.dropTarget(n, this.grabbedNode);
   const canBeDropSibling = n => isChild(n) && !n.same(this.grabbedNode) && options.dropSibling(n, this.grabbedNode);
   const canPullFromParent = n => isChild(n);
+  const getBoundTuplesNode = n => getBoundsTuple(n, options.boundingBoxOptions);
+
   const canBeInBoundsTuple = n => (canBeDropTarget(n) || canBeDropSibling(n)) && !n.same(this.dropTarget);
-  const updateBoundsTuples = () => this.boundsTuples = cy.nodes(canBeInBoundsTuple).map(getBoundsTuple);
+  const updateBoundsTuples = () => this.boundsTuples = cy.nodes(canBeInBoundsTuple).map(getBoundTuplesNode);
 
   const reset = () => {
     this.grabbedNode.removeClass('cdnd-grabbed-node');
@@ -50,7 +52,7 @@ const addListeners = function(){
 
     if( canPullFromParent(node) ){
       this.dropTarget = node.parent();
-      this.dropTargetBounds = getBoundsCopy(this.dropTarget);
+      this.dropTargetBounds = getBoundsCopy(this.dropTarget, options.boundingBoxOptions);
     }
 
     updateBoundsTuples();
@@ -67,7 +69,7 @@ const addListeners = function(){
     const newNode = e.target;
 
     if( canBeInBoundsTuple(newNode) ){
-      this.boundsTuples.push( getBoundsTuple(newNode) );
+      this.boundsTuples.push( getBoundsTuple(newNode, options.boundingBoxOptions) );
     }
   });
 
@@ -96,7 +98,7 @@ const addListeners = function(){
     if( !this.inGesture || !this.enabled ){ return; }
 
     if( this.dropTarget.nonempty() ){ // already in a parent
-      const bb = expandBounds( getBounds(this.grabbedNode), options.outThreshold );
+      const bb = expandBounds( getBounds(this.grabbedNode, options.boundingBoxOptions), options.outThreshold );
       const parent = this.dropTarget;
       const sibling = this.dropSibling;
       const rmFromParent = !boundsOverlap(this.dropTargetBounds, bb);
@@ -125,7 +127,7 @@ const addListeners = function(){
         this.grabbedNode.emit('cdndout', [parent, sibling]);
       }
     } else { // not in a parent
-      const bb = expandBounds( getBounds(this.grabbedNode), options.overThreshold );
+      const bb = expandBounds( getBounds(this.grabbedNode, options.boundingBoxOptions), options.overThreshold );
       const tupleOverlaps = t => !t.node.removed() && boundsOverlap(bb, t.bb);
       const overlappingNodes = this.boundsTuples.filter(tupleOverlaps).map(t => t.node);
 
@@ -146,7 +148,7 @@ const addListeners = function(){
 
         setParent(sibling, parent);
 
-        this.dropTargetBounds = getBoundsCopy(parent);
+        this.dropTargetBounds = getBoundsCopy(parent, options.boundingBoxOptions);
 
         setParent(this.grabbedNode, parent);
 
