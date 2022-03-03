@@ -1,6 +1,6 @@
 {
   "name": "cytoscape-compound-drag-and-drop",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Drag-and-drop UI for creating and editing the children of compound parent nodes",
   "main": "cytoscape-compound-drag-and-drop.js",
   "author": {
